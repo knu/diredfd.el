@@ -174,7 +174,7 @@ Adds a return VALUE to `file-name-history'."
 (defun diredfd--ad-auto-revert-if-sync (&rest args)
   "Internal advice function of diredfd.  ARGS is ignored."
   (or (bound-and-true-p dired-async-be-async)
-                                (diredfd-auto-revert)))
+      (diredfd-auto-revert)))
 
 (defun diredfd--ad-auto-revert-and-restore-point (&rest args)
   "Internal advice function of diredfd.  ARGS is ignored."
@@ -1126,9 +1126,15 @@ SORT-KEY and SORT-DIRECTION are asked in interactive mode."
            diredfd-sort-key
            (if (diredfd-sort-desc-p) "descending" "ascending")))
 
+(defvar diredfd--sorting nil
+  "Non-nil while `diredfd-sort' is running.")
+
 (defun diredfd-sort ()
-  (let* ((current (or (dired-get-filename nil t) (concat (file-name-as-directory default-directory) "..")))
-         (buffer-read-only))
+  "Sort directory entries in the current dired buffer."
+  (unless diredfd--sorting
+    (let* ((diredfd--sorting t)
+           (current (or (dired-get-filename nil t) (concat (file-name-as-directory default-directory) "..")))
+           (buffer-read-only))
       (goto-char (point-min))
       (while (cl-loop while (dired-between-files)
                       do (if (eobp)
@@ -1139,8 +1145,9 @@ SORT-KEY and SORT-DIRECTION are asked in interactive mode."
           (while (not (dired-between-files))
             (forward-line))
           (diredfd-sort-lines beg (point))))
-      (dired-goto-file current))
-  (set-buffer-modified-p nil))
+      (dired-goto-file current)
+      (set-buffer-modified-p nil)
+      (run-hooks 'dired-after-readin-hook))))
 
 (defcustom diredfd-highlight-line t
   "If non-nil, the current line is highlighted like FDclone."
@@ -1195,7 +1202,7 @@ SORT-KEY and SORT-DIRECTION are asked in interactive mode."
         (advice-add #'dired-async-after-file-create :around #'diredfd--ad-auto-revert-async))
 
     (setq diredfd--enabled t))
-  (add-hook 'dired-after-readin-hook 'diredfd-dired-after-readin-setup t t)
+  (add-hook 'dired-after-readin-hook 'diredfd-dired-after-readin-setup)
   (setq-local dired-deletion-confirmer 'y-or-n-p)
   (face-remap-set-base 'dired-directory 'diredfd-directory)
   (face-remap-set-base 'dired-symlink   'diredfd-symlink)
@@ -1227,7 +1234,7 @@ SORT-KEY and SORT-DIRECTION are asked in interactive mode."
         (advice-remove #'dired-async-after-file-create #'diredfd--ad-auto-revert-async))
 
     (setq diredfd--enabled nil))
-  (remove-hook 'dired-after-readin-hook 'diredfd-dired-after-readin-setup t)
+  (remove-hook 'dired-after-readin-hook 'diredfd-dired-after-readin-setup)
   (kill-local-variable 'dired-deletion-confirmer)
   (face-remap-reset-base 'dired-directory)
   (face-remap-reset-base 'dired-symlink)
