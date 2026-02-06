@@ -28,7 +28,7 @@
 ;; Author: Akinori MUSHA <knu@iDaemons.org>
 ;; URL: https://github.com/knu/diredfd.el
 ;; Created: 25 Dec 2014
-;; Version: 2.0.2
+;; Version: 2.0.3
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: unix, directories, dired
 
