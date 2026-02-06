@@ -1202,7 +1202,6 @@ SORT-KEY and SORT-DIRECTION are asked in interactive mode."
         (advice-add #'dired-async-after-file-create :around #'diredfd--ad-auto-revert-async))
 
     (setq diredfd--enabled t))
-  (add-hook 'dired-after-readin-hook 'diredfd-dired-after-readin-setup)
   (setq-local dired-deletion-confirmer 'y-or-n-p)
   (face-remap-set-base 'dired-directory 'diredfd-directory)
   (face-remap-set-base 'dired-symlink   'diredfd-symlink)
@@ -1234,7 +1233,6 @@ SORT-KEY and SORT-DIRECTION are asked in interactive mode."
         (advice-remove #'dired-async-after-file-create #'diredfd--ad-auto-revert-async))
 
     (setq diredfd--enabled nil))
-  (remove-hook 'dired-after-readin-hook 'diredfd-dired-after-readin-setup)
   (kill-local-variable 'dired-deletion-confirmer)
   (face-remap-reset-base 'dired-directory)
   (face-remap-reset-base 'dired-symlink)
@@ -1302,12 +1300,14 @@ SORT-KEY and SORT-DIRECTION are asked in interactive mode."
 ;;;###autoload
 (defun diredfd-enable ()
   "Enable diredfd that makes `dired' look and feel like FD/FDclone."
-  (add-hook 'dired-mode-hook 'diredfd-mode))
+  (add-hook 'dired-mode-hook 'diredfd-mode)
+  (add-hook 'dired-after-readin-hook 'diredfd-dired-after-readin-setup))
 
 ;;;###autoload
 (defun diredfd-disable ()
   "Disable diredfd that makes `dired' look and feel like FD/FDclone."
-  (remove-hook 'dired-mode-hook 'diredfd-mode))
+  (remove-hook 'dired-mode-hook 'diredfd-mode)
+  (remove-hook 'dired-after-readin-hook 'diredfd-dired-after-readin-setup))
 
 (provide 'diredfd)
 
