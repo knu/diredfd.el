@@ -114,6 +114,15 @@
   :type 'boolean
   :group 'diredfd)
 
+(defcustom diredfd-sort-inhibit-after-readin-functions
+  '(diff-hl-dired-update)
+  "Functions to inhibit in `dired-after-readin-hook' after sorting.
+These functions are skipped when running the hook after sorting,
+which is useful for avoiding issues with VC-related functions that
+expect a fresh buffer read rather than a sort operation."
+  :type '(repeat function)
+  :group 'diredfd)
+
 (defvar diredfd-enter-history nil
   "Default variable for `diredfd-enter-history-variable'.")
 
@@ -1147,7 +1156,10 @@ SORT-KEY and SORT-DIRECTION are asked in interactive mode."
           (diredfd-sort-lines beg (point))))
       (dired-goto-file current)
       (set-buffer-modified-p nil)
-      (run-hooks 'dired-after-readin-hook))))
+      (let ((dired-after-readin-hook
+             (cl-set-difference dired-after-readin-hook
+                                diredfd-sort-inhibit-after-readin-functions)))
+        (run-hooks 'dired-after-readin-hook)))))
 
 (defcustom diredfd-highlight-line t
   "If non-nil, the current line is highlighted like FDclone."
